@@ -2,8 +2,7 @@ mod queyd;
 #[macro_use] extern crate slugify;
 use actix_web::{guard, web, web::Data, App, HttpResponse, HttpServer, Result};
 use async_graphql::{
-    http::{playground_source, GraphQLPlaygroundConfig},
-    EmptyMutation, EmptySubscription, Schema,
+    http::{playground_source, GraphQLPlaygroundConfig}, EmptySubscription, Schema,
 };
 use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse};
 use queyd::*;
