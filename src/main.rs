@@ -12,7 +12,7 @@ async fn index(schema: web::Data<QueydSchema>, req: GraphQLRequest) -> GraphQLRe
 }
 
 async fn index_playground() -> Result<HttpResponse> {
-    let source = playground_source(GraphQLPlaygroundConfig::new("/").subscription_endpoint("/"));
+    let source = playground_source(GraphQLPlaygroundConfig::new("/api").subscription_endpoint("/api"));
     Ok(HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
         .body(source))
@@ -29,8 +29,8 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(Data::new(schema.clone()))
-            .service(web::resource("/").guard(guard::Post()).to(index))
-            .service(web::resource("/").guard(guard::Get()).to(index_playground))
+            .service(web::resource("/api").guard(guard::Post()).to(index))
+            .service(web::resource("/api-playground").guard(guard::Get()).to(index_playground))
     })
     .bind("127.0.0.1:8000")?
     .run()
