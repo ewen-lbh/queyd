@@ -350,9 +350,12 @@ impl MutationRoot {
         Ok(note)
     }
 
-    async fn delete(&self, ctx: &Context<'_>, id: String) -> bool {
+    async fn delete(&self, ctx: &Context<'_>, id: String) -> Result<bool> {
         let queyd = ctx.data_unchecked::<Queyd>().clone();
-        queyd.delete_note(&id).is_ok()
+        match queyd.delete_note(&id) {
+            Ok(_) => Ok(true),
+            Err(e) => Err(e),
+        }
     }
 
     async fn edit(
