@@ -1,31 +1,26 @@
-use async_graphql::{
-    indexmap::IndexMap, registry::Registry, Context, EmptySubscription, InputType, Object, Scalar,
-    Schema, SimpleObject,
-};
+use async_graphql::{Context, EmptySubscription, InputObject, Object, Schema, SimpleObject};
 use big_s::S;
 use chrono::{DateTime, Utc};
 use glob::glob;
 use lol_html::rewrite_str;
 use serde::{Deserialize, Serialize};
 use slugify::slugify;
-use std::{borrow::Cow, fs, path::PathBuf};
+use std::{fs, path::PathBuf};
 
 type Result<T> = core::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
-#[derive(Serialize, Deserialize)]
+#[derive(InputObject)]
 pub struct DateRange {
-    pub start: String,
-    pub end: String,
+    pub start: DateTime<Utc>,
+    pub end: DateTime<Utc>,
 }
-
-async_graphql::scalar!(DateRange);
 
 impl DateRange {
     fn within(&self, date: &str) -> bool {
-        let start = DateTime::parse_from_rfc3339(&self.start).unwrap();
-        let end = DateTime::parse_from_rfc3339(&self.end).unwrap();
-        let date = DateTime::parse_from_rfc3339(date).unwrap();
-        date >= start && date <= end
+        match DateTime::parse_from_rfc3339(date) {
+            Ok(dt) => self.start <= dt && dt <= self.end,
+            Err(_) => false,
+        }
     }
 }
 
