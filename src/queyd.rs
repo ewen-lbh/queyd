@@ -252,11 +252,9 @@ impl Queyd {
     }
 
     pub fn add_note(&self, note: &Note) -> Result<()> {
-        // XXX for some reason, using self.inside.join() doesn't work here
-        let filepath = format!("{}/{}", self.inside.display(), (note.id.to_owned() + ".md"));
+        let filepath = self.inside.join(note.id.to_owned() + ".md");
         println!("Queyd::add_note({:?})", filepath);
-        // TODO this should be run, but it doesn't work (see XXX above)
-        // fs::create_dir_all(filepath.parent().unwrap())?;
+        fs::create_dir_all(filepath.parent().unwrap())?;
         fs::write(
             filepath,
             format!(
