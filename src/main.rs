@@ -1,8 +1,9 @@
 mod queyd;
-#[macro_use] extern crate slugify;
+extern crate slugify;
 use actix_web::{guard, web, web::Data, App, HttpResponse, HttpServer, Result};
 use async_graphql::{
-    http::{playground_source, GraphQLPlaygroundConfig}, EmptySubscription, Schema,
+    http::{playground_source, GraphQLPlaygroundConfig},
+    EmptySubscription, Schema,
 };
 use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse};
 use queyd::*;
@@ -12,7 +13,8 @@ async fn index(schema: web::Data<QueydSchema>, req: GraphQLRequest) -> GraphQLRe
 }
 
 async fn index_playground() -> Result<HttpResponse> {
-    let source = playground_source(GraphQLPlaygroundConfig::new("/api").subscription_endpoint("/api"));
+    let source =
+        playground_source(GraphQLPlaygroundConfig::new("/api").subscription_endpoint("/api"));
     Ok(HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
         .body(source))
@@ -30,7 +32,11 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(Data::new(schema.clone()))
             .service(web::resource("/api").guard(guard::Post()).to(index))
-            .service(web::resource("/api-playground").guard(guard::Get()).to(index_playground))
+            .service(
+                web::resource("/api-playground")
+                    .guard(guard::Get())
+                    .to(index_playground),
+            )
     })
     .bind("127.0.0.1:8000")?
     .run()
