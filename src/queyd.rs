@@ -324,19 +324,22 @@ impl MutationRoot {
         body: String,
         tags: Option<Vec<String>>,
         id: Option<String>,
-    ) -> Note {
+    ) -> Result<Note> {
         let queyd = ctx.data_unchecked::<Queyd>().clone();
+        let id =
+            id.unwrap_or_else(|| compute_id(&project.clone().unwrap_or_default(), &title, &body));
+
+        if id.is_empty() {
+            return Err("Can't have both title & body empty: ID is empty".into());
+        }
+
         let note = Note {
             body,
             title: title.clone(),
             project: project.clone().unwrap_or_default(),
             tags: tags.unwrap_or(vec![]),
             area: area.unwrap_or_default(),
-            id: if id.clone().unwrap_or_default().is_empty() {
-                slugify!(&project.unwrap_or_default()) + "/" + &slugify!(&title)
-            } else {
-                id.unwrap_or_default()
-            },
+            id,
             url: S(""),
             date_of: NoteDates {
                 creation: Utc::now().to_rfc3339(),
@@ -344,7 +347,7 @@ impl MutationRoot {
             },
         };
         queyd.add_note(&note).expect("Failed to add note");
-        note
+        Ok(note)
     }
 
     async fn delete(&self, ctx: &Context<'_>, id: String) -> bool {
@@ -403,6 +406,27 @@ impl MutationRoot {
         self.edit(ctx, id, None, None, None, Some(S("archive")), None)
             .await
     }
+}
+
+pub fn compute_id(project: &str, title: &str, body: &str) -> String {
+    let body_first_line = body
+        .lines()
+        .next()
+        .unwrap_or_default()
+        .strip_prefix("<p>")
+        .unwrap_or_default()
+        .strip_suffix("</p>")
+        .unwrap_or_default();
+
+    println!("{}", body_first_line);
+
+    (match project {
+        "" => S(""),
+        _ => (slugify!(project) + "/"),
+    }) + &(match title {
+        "" => slugify!(&body_first_line),
+        _ => slugify!(title),
+    })
 }
 
 pub type QueydSchema = Schema<QueryRoot, MutationRoot, EmptySubscription>;
